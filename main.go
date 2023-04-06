@@ -5,35 +5,32 @@ package main
 import "C"
 import (
 	"archive/zip"
-	"bytes"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
-	"unsafe"
 )
 
-//export DownloadToBuffer
-func DownloadToBuffer(linkStr *C.char, buffPtr unsafe.Pointer) C.int {
-	link := C.GoString(linkStr)
-	ret := 0
-	if downloadToBuffer(link, buffPtr) {
-		ret = 1
-	}
-	return C.int(ret)
-}
+// //export DownloadToBuffer
+// func DownloadToBuffer(linkStr *C.char, buffPtr unsafe.Pointer) C.int {
+// 	link := C.GoString(linkStr)
+// 	ret := 0
+// 	if downloadToBuffer(link, buffPtr) {
+// 		ret = 1
+// 	}
+// 	return C.int(ret)
+// }
 
-//export DownloadToFile
-func DownloadToFile(linkStr, fileStr *C.char) C.int {
-	link := C.GoString(linkStr)
-	file := C.GoString(fileStr)
-	ret := 0
-	if downloadToFile(link, file) {
-		ret = 1
-	}
+// //export DownloadToFile
+// func DownloadToFile(linkStr, fileStr *C.char) C.int {
+// 	link := C.GoString(linkStr)
+// 	file := C.GoString(fileStr)
+// 	ret := 0
+// 	if downloadToFile(link, file) {
+// 		ret = 1
+// 	}
 
-	return C.int(ret)
-}
+// 	return C.int(ret)
+// }
 
 //export ExtractArchive
 func ExtractArchive(srcStr, destStr *C.char) C.int {
@@ -49,42 +46,44 @@ func ExtractArchive(srcStr, destStr *C.char) C.int {
 func main() {
 
 }
-func downloadToFile(link, file string) bool {
-	resp, err := http.Get(link)
-	if err == nil {
-		defer resp.Body.Close()
-		abs, _ := filepath.Abs(file)
-		dir := filepath.Dir(abs)
-		if !Exists(dir) {
-			os.MkdirAll(dir, 0755)
-		}
-		fh, err := os.OpenFile(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0755)
-		if err == nil {
-			defer fh.Close()
-			_, err = io.Copy(fh, resp.Body)
-			return err == nil
-		}
-	}
-	return false
-}
-func downloadToBuffer(link string, buffPtr unsafe.Pointer) bool {
-	resp, err := http.Get(link)
-	if err == nil {
-		defer resp.Body.Close()
-		data := make([]byte, 1024)
-		buff := bytes.NewBuffer(data)
-		if err == nil {
-			_, err = io.Copy(buff, resp.Body)
-			ptr := C.malloc(C.ulonglong(buff.Len()))
-			C.memcpy(unsafe.Pointer(ptr), unsafe.Pointer(&buff.Bytes()[0]), C.ulonglong(buff.Len()))
-			if err == nil {
-				buffPtr = unsafe.Pointer(ptr)
-			}
-			return err == nil
-		}
-	}
-	return false
-}
+
+//	func downloadToFile(link, file string) bool {
+//		resp, err := http.Get(link)
+//		if err == nil {
+//			defer resp.Body.Close()
+//			abs, _ := filepath.Abs(file)
+//			dir := filepath.Dir(abs)
+//			if !Exists(dir) {
+//				os.MkdirAll(dir, 0755)
+//			}
+//			fh, err := os.OpenFile(file, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0755)
+//			if err == nil {
+//				defer fh.Close()
+//				_, err = io.Copy(fh, resp.Body)
+//				return err == nil
+//			}
+//		}
+//		return false
+//	}
+//
+//	func downloadToBuffer(link string, buffPtr unsafe.Pointer) bool {
+//		resp, err := http.Get(link)
+//		if err == nil {
+//			defer resp.Body.Close()
+//			data := make([]byte, 1024)
+//			buff := bytes.NewBuffer(data)
+//			if err == nil {
+//				_, err = io.Copy(buff, resp.Body)
+//				ptr := C.malloc(C.ulonglong(buff.Len()))
+//				C.memcpy(unsafe.Pointer(ptr), unsafe.Pointer(&buff.Bytes()[0]), C.ulonglong(buff.Len()))
+//				if err == nil {
+//					buffPtr = unsafe.Pointer(ptr)
+//				}
+//				return err == nil
+//			}
+//		}
+//		return false
+//	}
 func Exists(path string) bool {
 	_, err := os.Stat(path)
 	return !os.IsNotExist(err)
