@@ -1,0 +1,1 @@
+go build -buildmode=c-shared -o ziputil64.dll -ldflags "-s -w" main.go
